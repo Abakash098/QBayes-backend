@@ -1,13 +1,20 @@
-const mysql = require('mysql2');
+const { Pool } = require('pg');
 require('dotenv').config();
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
+const pool = new Pool({
   user: process.env.DB_USER,
-  password: process.env.DB_PASS,
+  host: process.env.DB_HOST,
   database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10
+  password: process.env.DB_PASS,
+  port: process.env.DB_PORT || 5432,
 });
 
-module.exports = pool.promise(); // <--- This allows "await"
+pool.on('connect', () => {
+  console.log('✅ Connected to QBayes PostgreSQL Database');
+});
+
+pool.on('error', (err) => {
+  console.error('❌ Database connection error:', err);
+});
+
+module.exports = pool;
