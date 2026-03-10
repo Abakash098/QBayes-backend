@@ -1,13 +1,20 @@
-const mysql = require('mysql2');
+const { Pool } = require('pg');
 require('dotenv').config();
 
-const pool = mysql.createPool({
+const pool = new Pool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10
+  port: process.env.DB_PORT || 5432,
+  // Neon requires this SSL configuration
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
-module.exports = pool.promise(); // <--- This allows "await"
+pool.connect()
+  .then(() => console.log('✅ Connected to QBayes PostgreSQL Database'))
+  .catch(err => console.error('❌ Database Connection Error:', err.stack));
+
+module.exports = pool;
